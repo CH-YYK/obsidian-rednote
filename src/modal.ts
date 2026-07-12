@@ -1,5 +1,5 @@
-import { App, Modal, Setting } from "obsidian";
-import { RedNoteSettings } from "./types";
+import { App, Modal, Setting, TextComponent } from "obsidian";
+import { RedNoteSettings, ParsedNoteData } from "./types";
 
 export class RedNoteInputModal extends Modal {
 	result: string | null = null;
@@ -49,9 +49,9 @@ export class RedNoteInputModal extends Modal {
 }
 
 export class RedNoteConfirmModal extends Modal {
-	private data: { title: string; content: string; tags: string[]; images: string[]; videoUrl: string | null; isVideo: boolean };
+	private data: ParsedNoteData;
 	private settings: RedNoteSettings;
-	private onSubmit: (result: { title: string; content: string; tags: string[]; images: string[]; videoUrl: string | null; isVideo: boolean; category: string; downloadMedia: boolean; noteTemplate: string; subfolder?: string } | null) => void;
+	private onSubmit: (result: (ParsedNoteData & { category: string; downloadMedia: boolean; noteTemplate: string }) | null) => void;
 	
 	private editedTitle: string;
 	private editedContent: string;
@@ -65,9 +65,9 @@ export class RedNoteConfirmModal extends Modal {
 
 	constructor(
 		app: App,
-		data: { title: string; content: string; tags: string[]; images: string[]; videoUrl: string | null; isVideo: boolean },
+		data: ParsedNoteData,
 		settings: RedNoteSettings,
-		onSubmit: (result: { title: string; content: string; tags: string[]; images: string[]; videoUrl: string | null; isVideo: boolean; category: string; downloadMedia: boolean; noteTemplate: string; enableSubfolder?: boolean; subfolder?: string } | null) => void
+		onSubmit: (result: (ParsedNoteData & { category: string; downloadMedia: boolean; noteTemplate: string }) | null) => void
 	) {
 		super(app);
 		this.data = data;
@@ -118,7 +118,7 @@ export class RedNoteConfirmModal extends Modal {
 					});
 				textarea.inputEl.rows = 6;
 				textarea.inputEl.cols = 40;
-				textarea.inputEl.style.width = "100%";
+				textarea.inputEl.setCssStyles({ width: "100%" });
 			});
 
 		// Note Template textarea field
@@ -133,8 +133,10 @@ export class RedNoteConfirmModal extends Modal {
 					});
 				textarea.inputEl.rows = 6;
 				textarea.inputEl.cols = 40;
-				textarea.inputEl.style.width = "100%";
-				textarea.inputEl.style.fontFamily = "monospace";
+				textarea.inputEl.setCssStyles({
+					width: "100%",
+					fontFamily: "monospace"
+				});
 			});
 
 		// Tags edit field
@@ -153,7 +155,7 @@ export class RedNoteConfirmModal extends Modal {
 			);
 
 		// Category selection dropdown
-		let subfolderTextComponent: any = null;
+		let subfolderTextComponent: TextComponent | null = null;
 		let subfolderSetting: Setting | null = null;
 
 		new Setting(contentEl)
@@ -189,13 +191,13 @@ export class RedNoteConfirmModal extends Modal {
 						this.enableSubfolderLocal = value;
 						if (subfolderSetting) {
 							if (value) {
-								subfolderSetting.settingEl.style.display = "";
+								subfolderSetting.settingEl.setCssStyles({ display: "" });
 								if (!this.subfolder && subfolderTextComponent) {
 									this.subfolder = this.selectedCategory;
 									subfolderTextComponent.setValue(this.selectedCategory);
 								}
 							} else {
-								subfolderSetting.settingEl.style.display = "none";
+								subfolderSetting.settingEl.setCssStyles({ display: "none" });
 							}
 						}
 					})
@@ -215,7 +217,7 @@ export class RedNoteConfirmModal extends Modal {
 			});
 
 		if (!this.enableSubfolderLocal) {
-			subfolderSetting.settingEl.style.display = "none";
+			subfolderSetting.settingEl.setCssStyles({ display: "none" });
 		}
 
 		// Download media toggle
@@ -245,10 +247,6 @@ export class RedNoteConfirmModal extends Modal {
 		const buttonRow = contentEl.createEl("div", { 
 			cls: ["xhs-modal-row", "xhs-button-row"]
 		});
-		buttonRow.style.display = "flex";
-		buttonRow.style.gap = "10px";
-		buttonRow.style.justifyContent = "flex-end";
-		buttonRow.style.marginTop = "20px";
 
 		const cancelButton = buttonRow.createEl("button", {
 			text: "Cancel",

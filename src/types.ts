@@ -1,3 +1,16 @@
+import { TemplateEngine } from "./template";
+
+export interface ParsedNoteData {
+	title: string;
+	content: string;
+	tags: string[];
+	images: string[];
+	videoUrl: string | null;
+	isVideo: boolean;
+	subfolder?: string;
+	enableSubfolder?: boolean;
+}
+
 export interface RedNoteSettings {
 	defaultFolder: string;
 	enableSubfolder: boolean;
@@ -31,6 +44,6 @@ export const DEFAULT_SETTINGS: RedNoteSettings = {
 	downloadMedia: false,
 	writeObsidianPropertyTags: false,
 	writeRedNoteTags: true,
-	propertiesTemplate: 'title: "{{title}}"\nsource: "{{source}}"\ndate: "{{date}}"\ncategory: "{{category}}"',
-	noteTemplate: '{{media}}\n{{title}}\n{{content}}',
+	propertiesTemplate: TemplateEngine.DEFAULT_PROPERTIES,
+	noteTemplate: TemplateEngine.DEFAULT_NOTE,
 };

@@ -9,6 +9,9 @@ export interface TemplateData {
 }
 
 export class TemplateEngine {
+	static DEFAULT_PROPERTIES = 'title: "{{title}}"\nsource: "{{source}}"\ndate: "{{date}}"\ncategory: "{{category}}"';
+	static DEFAULT_NOTE = '{{media}}\n{{title}}\n{{content}}';
+
 	static generateMediaBlock(data: { isVideo: boolean; videoUrl: string | null; images: string[] }, url: string): { rawMedia: string; mediaBlock: string } {
 		let rawMedia = "";
 		let mediaBlock = "";
@@ -53,8 +56,8 @@ export class TemplateEngine {
 	static replaceMediaUrls(content: string, mediaMapping: { [remoteUrl: string]: string }): string {
 		let result = content;
 		for (const [remoteUrl, localPath] of Object.entries(mediaMapping)) {
-			// Escape special regex characters in the remote URL
-			const escapedUrl = remoteUrl.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
+			// Escape special regex characters in the remote URL (removed unnecessary escape of /)
+			const escapedUrl = remoteUrl.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&");
 			result = result.replace(new RegExp(escapedUrl, "g"), localPath);
 		}
 		return result;

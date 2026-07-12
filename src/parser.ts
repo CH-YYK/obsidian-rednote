@@ -23,6 +23,36 @@ export function extractTitle(html: string): string {
 	return rawTitle.replace(/#[^#\s\n\r]+/g, "").replace(/#/g, "").trim() || "Untitled RedNote Note";
 }
 
+interface XhsImage {
+	urlDefault?: string;
+}
+
+interface XhsVideoTrack {
+	masterUrl?: string;
+}
+
+interface XhsNoteDetail {
+	note: {
+		imageList?: XhsImage[];
+		video?: {
+			media?: {
+				stream?: {
+					h264?: XhsVideoTrack[];
+					h265?: XhsVideoTrack[];
+				};
+			};
+		};
+		desc?: string;
+		type?: string;
+	};
+}
+
+interface XhsState {
+	note: {
+		noteDetailMap: Record<string, XhsNoteDetail>;
+	};
+}
+
 export function extractImages(html: string): string[] {
 	const stateMatch = html.match(/window\.__INITIAL_STATE__=(.*?)<\/script>/s);
 	if (!stateMatch) return [];
@@ -30,14 +60,15 @@ export function extractImages(html: string): string[] {
 	try {
 		const jsonStr = stateMatch[1].trim();
 		const cleanedJson = jsonStr.replace(/undefined/g, "null");
-		const state = JSON.parse(cleanedJson);
+		const state = JSON.parse(cleanedJson) as XhsState;
 		const noteId = Object.keys(state.note.noteDetailMap)[0];
-		const imageList = state.note.noteDetailMap[noteId].note.imageList || [];
+		const imageList = state.note.noteDetailMap[noteId]?.note?.imageList || [];
 		return imageList
-			.map((img: any) => img.urlDefault || "")
+			.map((img) => img.urlDefault || "")
 			.filter((url: string) => url && url.startsWith("http"));
 	} catch (e) {
-		console.log(`Failed to parse images: ${e.message}`);
+		const errorMsg = e instanceof Error ? e.message : String(e);
+		console.log(`Failed to parse images: ${errorMsg}`);
 		return [];
 	}
 }
@@ -49,10 +80,10 @@ export function extractVideoUrl(html: string): string | null {
 	try {
 		const jsonStr = stateMatch[1].trim();
 		const cleanedJson = jsonStr.replace(/undefined/g, "null");
-		const state = JSON.parse(cleanedJson);
+		const state = JSON.parse(cleanedJson) as XhsState;
 		const noteId = Object.keys(state.note.noteDetailMap)[0];
-		const noteData = state.note.noteDetailMap[noteId].note;
-		const videoInfo = noteData.video;
+		const noteData = state.note.noteDetailMap[noteId]?.note;
+		const videoInfo = noteData?.video;
 
 		if (!videoInfo || !videoInfo.media || !videoInfo.media.stream) return null;
 
@@ -64,7 +95,8 @@ export function extractVideoUrl(html: string): string | null {
 		}
 		return null;
 	} catch (e) {
-		console.log(`Failed to parse video URL: ${e.message}`);
+		const errorMsg = e instanceof Error ? e.message : String(e);
+		console.log(`Failed to parse video URL: ${errorMsg}`);
 		return null;
 	}
 }
@@ -84,15 +116,16 @@ export function extractContent(html: string): string {
 		try {
 			const jsonStr = stateMatch[1].trim();
 			const cleanedJson = jsonStr.replace(/undefined/g, "null");
-			const state = JSON.parse(cleanedJson);
+			const state = JSON.parse(cleanedJson) as XhsState;
 			const noteId = Object.keys(state.note.noteDetailMap)[0];
-			const desc = state.note.noteDetailMap[noteId].note.desc || "";
+			const desc = state.note.noteDetailMap[noteId]?.note?.desc || "";
 			return desc
 				.replace(/\[话题\]/g, "")
 				.replace(/\[[^\]]+\]/g, "")
 				.trim() || "Content not found";
 		} catch (e) {
-			console.log(`Failed to parse content from JSON: ${e.message}`);
+			const errorMsg = e instanceof Error ? e.message : String(e);
+			console.log(`Failed to parse content from JSON: ${errorMsg}`);
 		}
 	}
 	return "Content not found";
@@ -105,12 +138,13 @@ export function isVideoNote(html: string): boolean {
 	try {
 		const jsonStr = stateMatch[1].trim();
 		const cleanedJson = jsonStr.replace(/undefined/g, "null");
-		const state = JSON.parse(cleanedJson);
+		const state = JSON.parse(cleanedJson) as XhsState;
 		const noteId = Object.keys(state.note.noteDetailMap)[0];
-		const noteType = state.note.noteDetailMap[noteId].note.type;
+		const noteType = state.note.noteDetailMap[noteId]?.note?.type;
 		return noteType === "video";
 	} catch (e) {
-		console.log(`Failed to determine note type: ${e.message}`);
+		const errorMsg = e instanceof Error ? e.message : String(e);
+		console.log(`Failed to determine note type: ${errorMsg}`);
 		return false;
 	}
 }

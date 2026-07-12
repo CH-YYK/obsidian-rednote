@@ -1,10 +1,9 @@
 import { Plugin, Notice, TFile, addIcon } from "obsidian";
-import { RedNoteSettings, DEFAULT_SETTINGS } from "./src/types";
+import { RedNoteSettings, DEFAULT_SETTINGS, ParsedNoteData } from "./src/types";
 import { RedNoteSettingTab } from "./src/settings";
 import { RedNoteInputModal, RedNoteConfirmModal } from "./src/modal";
 import { RedNoteImporter } from "./src/importer";
 import { extractURL } from "./src/parser";
-import { TemplateEngine, TemplateData } from "./src/template";
 
 export default class RedNoteImporterPlugin extends Plugin {
 	settings: RedNoteSettings;
@@ -30,14 +29,14 @@ export default class RedNoteImporterPlugin extends Plugin {
 		addIcon("rednote-logo", REDNOTE_ICON_SVG);
 
 		// Ribbon icon to trigger manual import flow
-		this.addRibbonIcon("rednote-logo", "Import RedNote Note", async () => {
+		this.addRibbonIcon("rednote-logo", "Import RedNote note", async () => {
 			await this.triggerImportFlow();
 		});
 
 		// Command palette registration
 		this.addCommand({
 			id: "import",
-			name: "Import RedNote Note",
+			name: "Import note",
 			callback: async () => {
 				await this.triggerImportFlow();
 			},
@@ -96,7 +95,7 @@ export default class RedNoteImporterPlugin extends Plugin {
 	}
 
 	async loadSettings() {
-		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+		this.settings = Object.assign({}, DEFAULT_SETTINGS, (await this.loadData()) as Partial<RedNoteSettings>);
 	}
 
 	async saveSettings() {
@@ -110,7 +109,7 @@ export default class RedNoteImporterPlugin extends Plugin {
 		});
 	}
 
-	async promptForConfirmation(data: any): Promise<{ title: string; content: string; tags: string[]; images: string[]; videoUrl: string | null; isVideo: boolean; category: string; downloadMedia: boolean; noteTemplate: string } | null> {
+	async promptForConfirmation(data: ParsedNoteData): Promise<{ title: string; content: string; tags: string[]; images: string[]; videoUrl: string | null; isVideo: boolean; category: string; downloadMedia: boolean; noteTemplate: string; subfolder?: string } | null> {
 		return new Promise((resolve) => {
 			const modal = new RedNoteConfirmModal(this.app, data, this.settings, (result) => resolve(result));
 			modal.open();

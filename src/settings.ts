@@ -60,17 +60,21 @@ export class RedNoteSettingTab extends PluginSettingTab {
 
 		// Advanced Options (collapsible details container)
 		const advancedDetails = containerEl.createEl("details");
-		advancedDetails.style.cursor = "pointer";
-		advancedDetails.style.marginTop = "20px";
-		advancedDetails.style.marginBottom = "20px";
+		advancedDetails.setCssStyles({
+			cursor: "pointer",
+			marginTop: "20px",
+			marginBottom: "20px"
+		});
 
 		const advancedSummary = advancedDetails.createEl("summary", { text: "Advanced Options" });
-		advancedSummary.style.fontWeight = "bold";
+		advancedSummary.setCssStyles({ fontWeight: "bold" });
 
 		const advancedContainer = advancedDetails.createEl("div");
-		advancedContainer.style.padding = "10px 0 0 15px";
-		advancedContainer.style.borderLeft = "2px solid var(--interactive-accent)";
-		advancedContainer.style.marginTop = "10px";
+		advancedContainer.setCssStyles({
+			padding: "10px 0 0 15px",
+			borderLeft: "2px solid var(--interactive-accent)",
+			marginTop: "10px"
+		});
 
 		// Write YAML tags toggle (renamed to "Write tags to Obsidian tags")
 		new Setting(advancedContainer)
@@ -105,7 +109,7 @@ export class RedNoteSettingTab extends PluginSettingTab {
 			.addTextArea((text) => {
 				text.inputEl.rows = 4;
 				text.inputEl.cols = 50;
-				text.inputEl.style.fontFamily = "monospace";
+				text.inputEl.setCssStyles({ fontFamily: "monospace" });
 				text
 					.setValue(this.plugin.settings.propertiesTemplate)
 					.onChange(async (value) => {
@@ -121,7 +125,7 @@ export class RedNoteSettingTab extends PluginSettingTab {
 			.addTextArea((text) => {
 				text.inputEl.rows = 4;
 				text.inputEl.cols = 50;
-				text.inputEl.style.fontFamily = "monospace";
+				text.inputEl.setCssStyles({ fontFamily: "monospace" });
 				text
 					.setValue(this.plugin.settings.noteTemplate)
 					.onChange(async (value) => {

@@ -23,21 +23,14 @@ export class RedNoteImporter {
 	}
 
 	async downloadMediaFile(url: string, folderPath: string, filename: string): Promise<string> {
-		const controller = new AbortController();
-		const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 seconds timeout
 		try {
-			const response = await fetch(url, { signal: controller.signal });
-			clearTimeout(timeoutId);
-			if (!response.ok) throw new Error(`HTTP error ${response.status}`);
-			const blob = await response.blob();
-			const arrayBuffer = await blob.arrayBuffer();
+			const response = await requestUrl({ url });
+			const arrayBuffer = response.arrayBuffer;
 			const filePath = `${folderPath}/${filename}`;
 			await this.app.vault.adapter.writeBinary(filePath, arrayBuffer);
 			return filename;
 		} catch (error) {
-			clearTimeout(timeoutId);
-			const isTimeout = error.name === "AbortError";
-			const msg = isTimeout ? "Request timeout (10s)" : error.message;
+			const msg = error instanceof Error ? error.message : String(error);
 			console.log(`Failed to download media from ${url}: ${msg}`);
 			new Notice(`Failed to download media: ${msg}`);
 			return url;
@@ -53,7 +46,8 @@ export class RedNoteImporter {
 				try {
 					await this.app.vault.createFolder(currentPath);
 				} catch (err) {
-					if (!err.message.includes("Folder already exists")) {
+					const errorMsg = err instanceof Error ? err.message : String(err);
+					if (!errorMsg.includes("Folder already exists")) {
 						throw err;
 					}
 				}

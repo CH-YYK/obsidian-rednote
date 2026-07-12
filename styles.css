@@ -47,7 +47,7 @@
 
 /* Download row specific styles */
 .xhs-download-row {
-	flex-direction: row !important;
+	flex-direction: row;
 	align-items: center;
 	gap: 8px;
 	margin-top: 20px;
@@ -72,6 +72,8 @@
 .xhs-button-row {
 	display: flex;
 	justify-content: flex-end;
+	gap: 10px;
+	margin-top: 20px;
 }
 
 /* Submit button */
