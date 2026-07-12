@@ -94,20 +94,29 @@ export class RedNoteImporter {
 	// Phase 2: Save processed/edited data to Vault
 	async saveNote(
 		url: string,
-		data: { title: string; content: string; tags: string[]; images: string[]; videoUrl: string | null; isVideo: boolean; noteTemplate?: string; subfolder?: string },
+		data: { title: string; content: string; tags: string[]; images: string[]; videoUrl: string | null; isVideo: boolean; noteTemplate?: string; enableSubfolder?: boolean; subfolder?: string },
 		category: string,
 		downloadMedia: boolean,
 		targetFile?: TFile
 	): Promise<void> {
 		try {
 			const { title, content, tags, images, videoUrl, isVideo, noteTemplate } = data;
-
 			const baseFolder = this.settings.defaultFolder || "";
 			const mediaFolder = baseFolder ? `${baseFolder}/media` : "media";
-			
+
 			let folderPath = baseFolder;
-			if (this.settings.enableSubfolder) {
-				const subfolder = data.subfolder !== undefined ? data.subfolder.trim() : (category || "Uncategorized");
+			
+			// Decide whether to use subfolder:
+			// 1. If enableSubfolder toggle is passed from data (modal was used): respect it.
+			// 2. If enableSubfolder is NOT passed (direct import API): fall back to global setting.
+			const useSubfolder = data.enableSubfolder !== undefined
+				? data.enableSubfolder
+				: this.settings.enableSubfolder;
+
+			if (useSubfolder) {
+				const subfolder = (data.subfolder && data.subfolder.trim().length > 0)
+					? data.subfolder.trim()
+					: (category || "Uncategorized");
 				if (subfolder) {
 					folderPath = baseFolder ? `${baseFolder}/${subfolder}` : subfolder;
 				}
@@ -217,8 +226,11 @@ export class RedNoteImporter {
 			}
 
 			this.settings.lastCategory = category;
-			if (this.settings.enableSubfolder && data.subfolder) {
-				this.settings.lastSubfolder = data.subfolder;
+			if (useSubfolder) {
+				const finalSubfolder = (data.subfolder && data.subfolder.trim().length > 0)
+					? data.subfolder.trim()
+					: category;
+				this.settings.lastSubfolder = finalSubfolder;
 			}
 			await this.onSettingsSaved();
 
