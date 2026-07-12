@@ -59,6 +59,7 @@ export class RedNoteConfirmModal extends Modal {
 	private editedTags: string[];
 	private selectedCategory: string;
 	private subfolder: string;
+	private enableSubfolderLocal: boolean;
 	private downloadMedia: boolean;
 	private isConfirmed = false;
 
@@ -66,7 +67,7 @@ export class RedNoteConfirmModal extends Modal {
 		app: App,
 		data: { title: string; content: string; tags: string[]; images: string[]; videoUrl: string | null; isVideo: boolean },
 		settings: RedNoteSettings,
-		onSubmit: (result: { title: string; content: string; tags: string[]; images: string[]; videoUrl: string | null; isVideo: boolean; category: string; downloadMedia: boolean; noteTemplate: string } | null) => void
+		onSubmit: (result: { title: string; content: string; tags: string[]; images: string[]; videoUrl: string | null; isVideo: boolean; category: string; downloadMedia: boolean; noteTemplate: string; subfolder?: string } | null) => void
 	) {
 		super(app);
 		this.data = data;
@@ -82,6 +83,7 @@ export class RedNoteConfirmModal extends Modal {
 			? this.settings.lastCategory
 			: this.settings.categories[0] || "Others";
 		this.subfolder = this.settings.lastSubfolder || this.selectedCategory;
+		this.enableSubfolderLocal = this.settings.enableSubfolder;
 		this.downloadMedia = this.settings.downloadMedia;
 	}
 
@@ -152,6 +154,7 @@ export class RedNoteConfirmModal extends Modal {
 
 		// Category selection dropdown
 		let subfolderTextComponent: any = null;
+		let subfolderSetting: Setting | null = null;
 
 		new Setting(contentEl)
 			.setName("Category")
@@ -166,7 +169,7 @@ export class RedNoteConfirmModal extends Modal {
 				dropdown.onChange((value) => {
 					const oldCategory = this.selectedCategory;
 					this.selectedCategory = value;
-					if (this.settings.enableSubfolder && subfolderTextComponent) {
+					if (this.enableSubfolderLocal && subfolderTextComponent) {
 						if (!this.subfolder || this.subfolder === oldCategory || this.subfolder === "Others") {
 							this.subfolder = value;
 							subfolderTextComponent.setValue(value);
@@ -175,19 +178,44 @@ export class RedNoteConfirmModal extends Modal {
 				});
 			});
 
+		// Enable subfolder toggle
+		new Setting(contentEl)
+			.setName("Enable subfolder")
+			.setDesc("Toggle saving notes in a subfolder for this import")
+			.addToggle((toggle) =>
+				toggle
+					.setValue(this.enableSubfolderLocal)
+					.onChange((value) => {
+						this.enableSubfolderLocal = value;
+						if (subfolderSetting) {
+							if (value) {
+								subfolderSetting.settingEl.style.display = "";
+								if (!this.subfolder && subfolderTextComponent) {
+									this.subfolder = this.selectedCategory;
+									subfolderTextComponent.setValue(this.selectedCategory);
+								}
+							} else {
+								subfolderSetting.settingEl.style.display = "none";
+							}
+						}
+					})
+			);
+
 		// Subfolder input textbox
-		if (this.settings.enableSubfolder) {
-			new Setting(contentEl)
-				.setName("Subfolder")
-				.setDesc("Customize the subfolder name under the default folder")
-				.addText((text) => {
-					subfolderTextComponent = text;
-					text
-						.setValue(this.subfolder)
-						.onChange((value) => {
-							this.subfolder = value.trim();
-						});
-				});
+		subfolderSetting = new Setting(contentEl)
+			.setName("Subfolder")
+			.setDesc("Customize the subfolder name under the default folder")
+			.addText((text) => {
+				subfolderTextComponent = text;
+				text
+					.setValue(this.subfolder)
+					.onChange((value) => {
+						this.subfolder = value.trim();
+					});
+			});
+
+		if (!this.enableSubfolderLocal) {
+			subfolderSetting.settingEl.style.display = "none";
 		}
 
 		// Download media toggle
@@ -251,7 +279,7 @@ export class RedNoteConfirmModal extends Modal {
 				category: this.selectedCategory,
 				downloadMedia: this.downloadMedia,
 				noteTemplate: this.noteTemplate,
-				subfolder: this.settings.enableSubfolder ? this.subfolder : undefined,
+				subfolder: this.enableSubfolderLocal ? this.subfolder : undefined,
 			});
 		} else {
 			this.onSubmit(null);

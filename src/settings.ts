@@ -58,22 +58,23 @@ export class RedNoteSettingTab extends PluginSettingTab {
 					})
 			);
 
-		// Write body tags toggle
-		new Setting(containerEl)
-			.setName("Write tags to note body")
-			.setDesc("If enabled, parsed hashtags will be written to the end of the note body (e.g. #harrypotter).")
-			.addToggle((toggle) =>
-				toggle
-					.setValue(this.plugin.settings.writeObsidianBodyTags)
-					.onChange(async (value) => {
-						this.plugin.settings.writeObsidianBodyTags = value;
-						await this.plugin.saveSettings();
-					})
-			);
+		// Advanced Options (collapsible details container)
+		const advancedDetails = containerEl.createEl("details");
+		advancedDetails.style.cursor = "pointer";
+		advancedDetails.style.marginTop = "20px";
+		advancedDetails.style.marginBottom = "20px";
 
-		// Write YAML tags toggle
-		new Setting(containerEl)
-			.setName("Write tags to Obsidian frontmatter")
+		const advancedSummary = advancedDetails.createEl("summary", { text: "Advanced Options" });
+		advancedSummary.style.fontWeight = "bold";
+
+		const advancedContainer = advancedDetails.createEl("div");
+		advancedContainer.style.padding = "10px 0 0 15px";
+		advancedContainer.style.borderLeft = "2px solid var(--interactive-accent)";
+		advancedContainer.style.marginTop = "10px";
+
+		// Write YAML tags toggle (renamed to "Write tags to Obsidian tags")
+		new Setting(advancedContainer)
+			.setName("Write tags to Obsidian tags")
 			.setDesc("If enabled, parsed hashtags will be written to the standard 'tags' YAML frontmatter list.")
 			.addToggle((toggle) =>
 				toggle
@@ -84,9 +85,9 @@ export class RedNoteSettingTab extends PluginSettingTab {
 					})
 			);
 
-		// Write RedNote tags toggle
-		new Setting(containerEl)
-			.setName("Write tags to rednote_tags frontmatter")
+		// Write RedNote tags toggle (renamed to "Write tags to properties")
+		new Setting(advancedContainer)
+			.setName("Write tags to properties")
 			.setDesc("If enabled, parsed hashtags will be written to a custom 'rednote_tags' YAML frontmatter list.")
 			.addToggle((toggle) =>
 				toggle
