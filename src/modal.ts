@@ -67,7 +67,7 @@ export class RedNoteConfirmModal extends Modal {
 		app: App,
 		data: { title: string; content: string; tags: string[]; images: string[]; videoUrl: string | null; isVideo: boolean },
 		settings: RedNoteSettings,
-		onSubmit: (result: { title: string; content: string; tags: string[]; images: string[]; videoUrl: string | null; isVideo: boolean; category: string; downloadMedia: boolean; noteTemplate: string; subfolder?: string } | null) => void
+		onSubmit: (result: { title: string; content: string; tags: string[]; images: string[]; videoUrl: string | null; isVideo: boolean; category: string; downloadMedia: boolean; noteTemplate: string; enableSubfolder?: boolean; subfolder?: string } | null) => void
 	) {
 		super(app);
 		this.data = data;
@@ -279,7 +279,8 @@ export class RedNoteConfirmModal extends Modal {
 				category: this.selectedCategory,
 				downloadMedia: this.downloadMedia,
 				noteTemplate: this.noteTemplate,
-				subfolder: this.enableSubfolderLocal ? this.subfolder : undefined,
+				enableSubfolder: this.enableSubfolderLocal,
+				subfolder: this.subfolder,
 			});
 		} else {
 			this.onSubmit(null);
