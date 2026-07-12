@@ -1,5 +1,7 @@
 export interface RedNoteSettings {
 	defaultFolder: string;
+	enableSubfolder: boolean;
+	lastSubfolder: string;
 	categories: string[];
 	lastCategory: string;
 	downloadMedia: boolean;
@@ -11,7 +13,9 @@ export interface RedNoteSettings {
 }
 
 export const DEFAULT_SETTINGS: RedNoteSettings = {
-	defaultFolder: "RedNote Notes",
+	defaultFolder: "RedNote",
+	enableSubfolder: false,
+	lastSubfolder: "",
 	categories: [
 		"Food",
 		"Travel",

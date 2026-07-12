@@ -44,6 +44,23 @@ export class RedNoteImporter {
 		}
 	}
 
+	async createFolderRecursive(folderPath: string): Promise<void> {
+		const parts = folderPath.split("/").filter(p => p);
+		let currentPath = "";
+		for (const part of parts) {
+			currentPath = currentPath ? `${currentPath}/${part}` : part;
+			if (!await this.app.vault.adapter.exists(currentPath)) {
+				try {
+					await this.app.vault.createFolder(currentPath);
+				} catch (err) {
+					if (!err.message.includes("Folder already exists")) {
+						throw err;
+					}
+				}
+			}
+		}
+	}
+
 	// Double-phase import (backward compatible)
 	async importNote(url: string, category: string, downloadMedia: boolean, targetFile?: TFile): Promise<void> {
 		const data = await this.fetchNoteData(url);
@@ -77,7 +94,7 @@ export class RedNoteImporter {
 	// Phase 2: Save processed/edited data to Vault
 	async saveNote(
 		url: string,
-		data: { title: string; content: string; tags: string[]; images: string[]; videoUrl: string | null; isVideo: boolean; noteTemplate?: string },
+		data: { title: string; content: string; tags: string[]; images: string[]; videoUrl: string | null; isVideo: boolean; noteTemplate?: string; subfolder?: string },
 		category: string,
 		downloadMedia: boolean,
 		targetFile?: TFile
@@ -86,9 +103,15 @@ export class RedNoteImporter {
 			const { title, content, tags, images, videoUrl, isVideo, noteTemplate } = data;
 
 			const baseFolder = this.settings.defaultFolder || "";
-			const mediaFolder = `${baseFolder}/media`;
-			const categoryFolder = category || "Uncategorized";
-			const folderPath = baseFolder ? `${baseFolder}/${categoryFolder}` : categoryFolder;
+			const mediaFolder = baseFolder ? `${baseFolder}/media` : "media";
+			
+			let folderPath = baseFolder;
+			if (this.settings.enableSubfolder) {
+				const subfolder = data.subfolder !== undefined ? data.subfolder.trim() : (category || "Uncategorized");
+				if (subfolder) {
+					folderPath = baseFolder ? `${baseFolder}/${subfolder}` : subfolder;
+				}
+			}
 
 			let safeTitle = title.replace(/[/\\?%*:|"<>]/g, "-").trim();
 			safeTitle = safeTitle.length > 0 ? safeTitle : "Untitled";
@@ -104,15 +127,15 @@ export class RedNoteImporter {
 
 			const mediaSafeTitle = sanitizeFilename(title);
 
-			if (!await this.app.vault.adapter.exists(folderPath)) {
-				await this.app.vault.createFolder(folderPath);
+			if (folderPath && !await this.app.vault.adapter.exists(folderPath)) {
+				await this.createFolderRecursive(folderPath);
 			}
 
 			const mediaMapping: { [remoteUrl: string]: string } = {};
 
 			if (downloadMedia) {
-				if (!await this.app.vault.adapter.exists(mediaFolder)) {
-					await this.app.vault.createFolder(mediaFolder);
+				if (mediaFolder && !await this.app.vault.adapter.exists(mediaFolder)) {
+					await this.createFolderRecursive(mediaFolder);
 				}
 
 				if (isVideo) {
@@ -198,6 +221,9 @@ export class RedNoteImporter {
 			}
 
 			this.settings.lastCategory = category;
+			if (this.settings.enableSubfolder && data.subfolder) {
+				this.settings.lastSubfolder = data.subfolder;
+			}
 			await this.onSettingsSaved();
 
 			new Notice(`Imported RedNote note as ${filePath}`);

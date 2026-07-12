@@ -51,13 +51,14 @@ export class RedNoteInputModal extends Modal {
 export class RedNoteConfirmModal extends Modal {
 	private data: { title: string; content: string; tags: string[]; images: string[]; videoUrl: string | null; isVideo: boolean };
 	private settings: RedNoteSettings;
-	private onSubmit: (result: { title: string; content: string; tags: string[]; images: string[]; videoUrl: string | null; isVideo: boolean; category: string; downloadMedia: boolean; noteTemplate: string } | null) => void;
+	private onSubmit: (result: { title: string; content: string; tags: string[]; images: string[]; videoUrl: string | null; isVideo: boolean; category: string; downloadMedia: boolean; noteTemplate: string; subfolder?: string } | null) => void;
 	
 	private editedTitle: string;
 	private editedContent: string;
 	private noteTemplate: string;
 	private editedTags: string[];
 	private selectedCategory: string;
+	private subfolder: string;
 	private downloadMedia: boolean;
 	private isConfirmed = false;
 
@@ -80,6 +81,7 @@ export class RedNoteConfirmModal extends Modal {
 		this.selectedCategory = this.settings.lastCategory && this.settings.categories.includes(this.settings.lastCategory)
 			? this.settings.lastCategory
 			: this.settings.categories[0] || "Others";
+		this.subfolder = this.settings.lastSubfolder || this.selectedCategory;
 		this.downloadMedia = this.settings.downloadMedia;
 	}
 
@@ -149,6 +151,8 @@ export class RedNoteConfirmModal extends Modal {
 			);
 
 		// Category selection dropdown
+		let subfolderTextComponent: any = null;
+
 		new Setting(contentEl)
 			.setName("Category")
 			.setDesc("Select the subfolder category")
@@ -160,9 +164,31 @@ export class RedNoteConfirmModal extends Modal {
 				
 				dropdown.setValue(this.selectedCategory);
 				dropdown.onChange((value) => {
+					const oldCategory = this.selectedCategory;
 					this.selectedCategory = value;
+					if (this.settings.enableSubfolder && subfolderTextComponent) {
+						if (!this.subfolder || this.subfolder === oldCategory || this.subfolder === "Others") {
+							this.subfolder = value;
+							subfolderTextComponent.setValue(value);
+						}
+					}
 				});
 			});
+
+		// Subfolder input textbox
+		if (this.settings.enableSubfolder) {
+			new Setting(contentEl)
+				.setName("Subfolder")
+				.setDesc("Customize the subfolder name under the default folder")
+				.addText((text) => {
+					subfolderTextComponent = text;
+					text
+						.setValue(this.subfolder)
+						.onChange((value) => {
+							this.subfolder = value.trim();
+						});
+				});
+		}
 
 		// Download media toggle
 		new Setting(contentEl)
@@ -225,6 +251,7 @@ export class RedNoteConfirmModal extends Modal {
 				category: this.selectedCategory,
 				downloadMedia: this.downloadMedia,
 				noteTemplate: this.noteTemplate,
+				subfolder: this.settings.enableSubfolder ? this.subfolder : undefined,
 			});
 		} else {
 			this.onSubmit(null);
