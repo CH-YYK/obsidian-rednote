@@ -1,6 +1,6 @@
-# RedNote / Xiaohongshu Importer for Obsidian
+# RedNote for Obsidian
 
-An Obsidian plugin to scrape, parse, and import RedNote and Xiaohongshu (小红书) posts directly into your Obsidian vault as Markdown notes, with support for media downloads and categorizations.
+An Obsidian plugin to connect RedNote/Xiaohongshu (小红书) with Obsidian, with support for media downloads and categorizations.
 
 ## How it Works
 
@@ -45,7 +45,6 @@ The scraped content is formatted according to the template with all tags and loc
 - **URI Protocol Handler**: Trigger imports from outside Obsidian via the `obsidian://rednote-import` protocol link. Excellent for iOS Shortcuts or Tasker on Android.
 - **Media Download Support**: Automatically download images locally into a dedicated media subfolder. *Note: Currently supported media does not include video files (video posts will fallback to cover image or keep the remote video link).*
 - **Filename Collision Protection**: If a note with the same title already exists, the plugin automatically resolves the filename by appending `-1`, `-2`, etc., avoiding data overwrite.
-- **Decoupled API**: Exposes a clean, public API for integration with centralized link dispatchers or scripting plugins (like Templater or QuickAdd).
 
 ---
 
@@ -89,23 +88,8 @@ You can customize the structure of your note body and frontmatter properties in 
 
 ---
 
-## Developer Documentation
+## Installation & Local Development
 
-### Public API Contract
-Other plugins can access the scraper and importer functionality directly:
-```typescript
-const rednotePlugin = app.plugins.plugins["rednote"];
-if (rednotePlugin && rednotePlugin.api) {
-    const text = "Check out http://xhslink.com/o/2Bi7K3Cxa3q";
-    const url = rednotePlugin.api.extractURL(text);
-    if (url) {
-        // targetFile is optional. If provided, the plugin overwrites and renames it.
-        await rednotePlugin.api.importNote(url, "Food", true, targetFile);
-    }
-}
-```
-
-### Installation & Local Deployment
 To run and install the plugin in your local Obsidian vault:
 1. Clone this repository anywhere on your system.
 2. Create your local environment configuration file:
