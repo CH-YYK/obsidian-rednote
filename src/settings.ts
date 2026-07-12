@@ -21,13 +21,26 @@ export class RedNoteSettingTab extends PluginSettingTab {
 		// Default folder setting
 		new Setting(containerEl)
 			.setName("Default folder")
-			.setDesc("Base folder where category subfolders will be created (e.g., 'RedNote Notes'). Leave empty for vault root.")
+			.setDesc("Base folder where notes will be saved (e.g., 'RedNote'). Leave empty for vault root.")
 			.addText((text) =>
 				text
-					.setPlaceholder("RedNote Notes")
+					.setPlaceholder("RedNote")
 					.setValue(this.plugin.settings.defaultFolder)
 					.onChange(async (value) => {
 						this.plugin.settings.defaultFolder = value.trim();
+						await this.plugin.saveSettings();
+					})
+			);
+
+		// Enable subfolder setting
+		new Setting(containerEl)
+			.setName("Enable subfolder")
+			.setDesc("If enabled, notes will be saved in a subfolder (e.g., category or custom path) under the default folder.")
+			.addToggle((toggle) =>
+				toggle
+					.setValue(this.plugin.settings.enableSubfolder)
+					.onChange(async (value) => {
+						this.plugin.settings.enableSubfolder = value;
 						await this.plugin.saveSettings();
 					})
 			);
