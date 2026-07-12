@@ -202,11 +202,7 @@ export class RedNoteImporter {
 			}
 
 			const activeNoteTemplate = noteTemplate || this.settings.noteTemplate;
-			let bodyBlock = TemplateEngine.render(activeNoteTemplate, templateData, false);
-
-			if (tags.length > 0 && this.settings.writeObsidianBodyTags) {
-				bodyBlock += "\n\n" + tags.map((tag) => `#${tag}`).join(" ") + "\n\n";
-			}
+			const bodyBlock = TemplateEngine.render(activeNoteTemplate, templateData, false);
 
 			const markdown = `${yamlBlock}${bodyBlock}`;
 

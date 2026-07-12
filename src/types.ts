@@ -5,7 +5,6 @@ export interface RedNoteSettings {
 	categories: string[];
 	lastCategory: string;
 	downloadMedia: boolean;
-	writeObsidianBodyTags: boolean;
 	writeObsidianPropertyTags: boolean;
 	writeRedNoteTags: boolean;
 	propertiesTemplate: string;
@@ -30,7 +29,6 @@ export const DEFAULT_SETTINGS: RedNoteSettings = {
 	],
 	lastCategory: "",
 	downloadMedia: false,
-	writeObsidianBodyTags: false,
 	writeObsidianPropertyTags: false,
 	writeRedNoteTags: true,
 	propertiesTemplate: 'title: "{{title}}"\nsource: "{{source}}"\ndate: "{{date}}"\ncategory: "{{category}}"',
