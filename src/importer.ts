@@ -63,8 +63,39 @@ export class RedNoteImporter {
 
 	// Phase 1: Fetch and parse Note Data
 	async fetchNoteData(url: string) {
-		const response = await requestUrl({ url });
-		const html = response.text;
+		// When requesting RedNote URLs, fetch from xiaohongshu.com where SSR provides full initial state
+		let targetUrl = url;
+		if (/https?:\/\/(?:www\.)?rednote\.com/i.test(targetUrl)) {
+			targetUrl = targetUrl.replace(/https?:\/\/(?:www\.)?rednote\.com/i, "https://www.xiaohongshu.com");
+		}
+
+		const headers = {
+			"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+			"Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8",
+			"Referer": "https://www.xiaohongshu.com/"
+		};
+
+		let response = await requestUrl({ url: targetUrl, headers });
+		let html = response.text;
+
+		// Check if response contains a client-side redirect (e.g. window.location or meta refresh)
+		const redirectMatch = html.match(/window\.location(?:\.href)?\s*=\s*['"]([^'"]+)['"]/i)
+			|| html.match(/window\.location\.replace\(\s*['"]([^'"]+)['"]\s*\)/i)
+			|| html.match(/<meta[^>]*http-equiv=["']refresh["'][^>]*content=["'][^"']*url=([^"']+)["']/i);
+
+		if (redirectMatch && redirectMatch[1]) {
+			let redirectUrl = redirectMatch[1];
+			if (!redirectUrl.startsWith("http")) {
+				redirectUrl = new URL(redirectUrl, targetUrl).toString();
+			}
+			if (/https?:\/\/(?:www\.)?rednote\.com/i.test(redirectUrl)) {
+				redirectUrl = redirectUrl.replace(/https?:\/\/(?:www\.)?rednote\.com/i, "https://www.xiaohongshu.com");
+			}
+			if (redirectUrl !== targetUrl) {
+				response = await requestUrl({ url: redirectUrl, headers });
+				html = response.text;
+			}
+		}
 
 		const title = extractTitle(html);
 		const rawContent = extractContent(html);
