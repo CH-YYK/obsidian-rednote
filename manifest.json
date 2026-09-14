@@ -1,7 +1,7 @@
 {
 	"id": "rednote",
 	"name": "RedNote",
-	"version": "1.2.0",
+	"version": "1.2.1",
 	"minAppVersion": "1.4.0",
 	"description": "Connect RedNote/Xiaohongshu (小红书).",
 	"author": "kylemumu",

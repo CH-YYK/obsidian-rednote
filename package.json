@@ -1,6 +1,6 @@
 {
 	"name": "obsidian-rednote",
-	"version": "1.2.0",
+	"version": "1.2.1",
 	"description": "Import Xiaohongshu (小红书) notes with media and categorization into Obsidian.",
 	"main": "main.js",
 	"scripts": {
